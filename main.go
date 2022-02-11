@@ -11,8 +11,7 @@ func main() {
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			rw.Write([]byte("Oops, something went wrong"))
+			http.Error(rw, "Ooops", http.StatusBadRequest)
 			return
 		}
 		log.Printf("Data: %s", data)
