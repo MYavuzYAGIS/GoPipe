@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/MYavuzYAGIS/GoPipe/handlers"
 )
 
 func main() {
