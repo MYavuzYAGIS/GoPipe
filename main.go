@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -26,7 +27,7 @@ func main() {
 	//Createing custom Server properties to better fine-tune the server details and run away from possible DDOS attacks by setting
 	//the timeout and the read and write timeouts
 	server := &http.Server{
-		Addr:         ":9090",
+		Addr:         ":9090", // binding all connections to port 9090
 		Handler:      serveMux,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
@@ -35,5 +36,7 @@ func main() {
 
 	// Serve the server and replace the default http.ListenAndServe() with the custom server
 	server.ListenAndServe()
+
+	server.Shutdown(context.Background()) // for graceful shutdown
 
 }
