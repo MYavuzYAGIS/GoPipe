@@ -1,24 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		data, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(rw, "Ooops", http.StatusBadRequest)
-			return
-		}
-		log.Printf("Data: %s", data)
-		fmt.Fprintf(rw, "Hello, %s", data)
-
-	})
-
-	http.ListenAndServe(":9090", nil)
+	// http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+	// })
+	l := log.New(os.Stdout, "product-API", log.LstdFlags)
+	helloHandler := handlers.NewHello(l)
+	serveMux := http.NewServeMux()
+	serveMux.Handle("/hello", helloHandler)
+	http.ListenAndServe(":9090", serveMux)
 
 }
