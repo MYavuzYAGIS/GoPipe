@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/MYavuzYAGIS/GoPipe/handlers"
@@ -35,8 +36,21 @@ func main() {
 	}
 
 	// Serve the server and replace the default http.ListenAndServe() with the custom server
-	server.ListenAndServe()
 
-	server.Shutdown(context.Background()) // for graceful shutdown
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			l.Fatal(err)
+		}
+	}()
+
+	sigChannel := make(chan os.Signal)
+	signal.Notify(sigChannel, os.Interrupt)
+	signal.Notify(sigChannel, os.Kill)
+	sig := <-sigChannel
+	l.Println("Received terminate, graceful shutdown", sig)
+
+	timeoutContext, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	server.Shutdown(timeoutContext) // for graceful shutdown
 
 }
