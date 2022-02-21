@@ -12,8 +12,7 @@ import (
 )
 
 func main() {
-	// http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-	// })
+
 	l := log.New(os.Stdout, "product-API", log.LstdFlags)
 
 	//Handler defs
@@ -50,7 +49,8 @@ func main() {
 	sig := <-sigChannel
 	l.Println("Received terminate, graceful shutdown", sig)
 
-	timeoutContext, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	server.Shutdown(timeoutContext) // for graceful shutdown
 
 }
