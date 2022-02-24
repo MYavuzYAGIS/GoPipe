@@ -16,13 +16,12 @@ func main() {
 	l := log.New(os.Stdout, "product-API", log.LstdFlags)
 
 	//Handler defs
-	helloHandler := handlers.NewHello(l)
-	goodbyeHandler := handlers.NewGoodbye(l)
+	productHandler := handlers.NewProducts(l)
+
 	// Mux defs
 	serveMux := http.NewServeMux()
 	// Mux implementation
-	serveMux.Handle("/hello", helloHandler)
-	serveMux.Handle("/goodbye", goodbyeHandler)
+	serveMux.Handle("/", productHandler)
 
 	//Createing custom Server properties to better fine-tune the server details and run away from possible DDOS attacks by setting
 	//the timeout and the read and write timeouts
