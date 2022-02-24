@@ -20,6 +20,9 @@ func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		p.getProducts(rw, r)
 		return
 	}
+
+	// handle update(PUT)
+
 	// catch all other methods
 
 	rw.WriteHeader(http.StatusMethodNotAllowed)
