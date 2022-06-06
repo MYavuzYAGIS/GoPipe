@@ -21,6 +21,11 @@ func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method == http.MethodPost {
+		p.addProduct(rw, r)
+		return
+	}
+
 	// handle update(PUT)
 
 	// catch all other methods
@@ -35,4 +40,8 @@ func (p *Products) getProducts(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(rw, "Oops! Something went wrong", http.StatusInternalServerError)
 	}
+}
+
+func (p *Products) addProduct(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle Post Products")
 }
