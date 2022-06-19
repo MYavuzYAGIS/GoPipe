@@ -3,6 +3,8 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"regexp"
+	"strconv"
 
 	"github.com/MYavuzYAGIS/GoPipe/data"
 )
@@ -25,10 +27,30 @@ func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		p.addProduct(rw, r)
 		return
 	}
+	if r.Method == http.MethodPut {
+		//expect the id in the uri
+		path := r.URL.Path
+		reg := regexp.MustCompile(`/(\d+)`)
+		group := reg.FindAllStringSubmatch(path, -1)
+		if len(group) != 1 {
+			http.Error(rw, "Invalid URI", http.StatusBadRequest)
+			return
+		}
+		if len(group[0]) != 2 {
+			http.Error(rw, "Invalid URI", http.StatusBadRequest)
+			return
+		}
+		idString := group[0][1]
+		id, err := strconv.Atoi(idString)
+		if err != nil {
+			http.Error(rw, "Invalid URI", http.StatusBadRequest)
+			return
+		}
+		p.l.Println("Got Id", id)
+		p.updateProducts(id, rw, r)
+		return
 
-	// handle update(PUT)
-
-	// catch all other methods
+	}
 
 	rw.WriteHeader(http.StatusMethodNotAllowed)
 
@@ -46,9 +68,30 @@ func (p *Products) addProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle Post Products")
 
 	product := &data.Product{}
-	err := product.FromJSON{r.Body}
+	err := product.FromJSON(r.Body)
 	if err != nil {
 		http.Error(rw, "unable to unmarshal json", http.StatusBadRequest)
 	}
 	p.l.Printf("Product: %#v", product)
+	data.AddProduct(product)
+}
+
+func (p Products) updateProducts(id int, rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle  Complete update of the  product")
+	product := &data.Product{}
+	err := product.FromJSON(r.Body)
+	if err != nil {
+		http.Error(rw, "unable to unmarshal json", http.StatusBadRequest)
+	}
+
+	err = data.UpdateProduct(id, product)
+	if err == data.ErrorProductNotFound {
+		http.Error(rw, "Prod not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(rw, "Prod not found", http.StatusInternalServerError)
+		return
+	}
+
 }
