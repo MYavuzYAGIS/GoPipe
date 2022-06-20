@@ -3,10 +3,10 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/MYavuzYAGIS/GoPipe/data"
+	"github.com/gorilla/mux"
 )
 
 type Products struct {
@@ -17,46 +17,7 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
-func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		p.getProducts(rw, r)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		p.addProduct(rw, r)
-		return
-	}
-	if r.Method == http.MethodPut {
-		//expect the id in the uri
-		path := r.URL.Path
-		reg := regexp.MustCompile(`/(\d+)`)
-		group := reg.FindAllStringSubmatch(path, -1)
-		if len(group) != 1 {
-			http.Error(rw, "Invalid URI", http.StatusBadRequest)
-			return
-		}
-		if len(group[0]) != 2 {
-			http.Error(rw, "Invalid URI", http.StatusBadRequest)
-			return
-		}
-		idString := group[0][1]
-		id, err := strconv.Atoi(idString)
-		if err != nil {
-			http.Error(rw, "Invalid URI", http.StatusBadRequest)
-			return
-		}
-		p.l.Println("Got Id", id)
-		p.updateProducts(id, rw, r)
-		return
-
-	}
-
-	rw.WriteHeader(http.StatusMethodNotAllowed)
-
-}
-
-func (p *Products) getProducts(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
 	listProducts := data.GetProducts()
 	err := listProducts.ToJSON(rw)
 	if err != nil {
@@ -64,7 +25,7 @@ func (p *Products) getProducts(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Products) addProduct(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle Post Products")
 
 	product := &data.Product{}
@@ -76,7 +37,10 @@ func (p *Products) addProduct(rw http.ResponseWriter, r *http.Request) {
 	data.AddProduct(product)
 }
 
-func (p Products) updateProducts(id int, rw http.ResponseWriter, r *http.Request) {
+func (p Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
 	p.l.Println("Handle  Complete update of the  product")
 	product := &data.Product{}
 	err := product.FromJSON(r.Body)
@@ -93,5 +57,4 @@ func (p Products) updateProducts(id int, rw http.ResponseWriter, r *http.Request
 		http.Error(rw, "Prod not found", http.StatusInternalServerError)
 		return
 	}
-
 }
